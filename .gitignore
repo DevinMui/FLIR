@@ -1,1 +1,4 @@
 .DS_Store
+Pods/
+VideoPreviewer/
+DJISDK.framework/
