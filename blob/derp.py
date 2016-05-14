@@ -4,12 +4,13 @@ from skimage.feature import blob_dog, blob_log, blob_doh
 from math import sqrt
 from skimage.color import rgb2gray
 from skimage.io import imread
-image = imread('f.jpg')
+image = imread('flir.jpg')
 image_gray = rgb2gray(image)
 
-blobs_doh = blob_doh(image_gray, max_sigma=30, threshold=.01)
+blobs_doh = blob_doh(image_gray, min_sigma=20, max_sigma=35, threshold=.01)
 
 blobs_list = [blobs_doh]
+print blobs_list
 colors = ['lime']
 titles = ['Determinant of Hessian']
 sequence = zip(blobs_list, colors, titles)
