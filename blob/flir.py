@@ -39,7 +39,7 @@ while True:
 		r = requests.get(url + "/intrude")
 		pwm.ChangeDutyCycle(start + 15)
 		start = start + 15
-		time.sleep(1)
+		time.sleep(0.5)
 		# potentially move to blob
 		y = blobs_doh[0][0]
 		x = blobs_doh[0][1]
@@ -48,5 +48,5 @@ while True:
 	else:
 		r = requests.get(url + "/no_intrude")
 		pwm.ChangeDutyCycle(5)
-		time.sleep(1)
+		#time.sleep(0.5)
 		# set drone to standalone mode/passive tracking
