@@ -6,14 +6,13 @@ import requests
 from pylepton import Lepton
 import numpy as np
 
-
 def capture(flip_v = False, device = "/dev/spidev0.0"):
-  with Lepton(device) as l:
-    a,_ = l.capture()
-  if flip_v:
-    cv2.flip(a,0,a)
-  cv2.normalize(a, a, 0, 65535, cv2.NORM_MINMAX)
-  np.right_shift(a, 8, a)
+	with Lepton(device) as l:
+		a,_ = l.capture()
+	if flip_v:
+		cv2.flip(a,0,a)
+	cv2.normalize(a, a, 0, 65535, cv2.NORM_MINMAX)
+	np.right_shift(a, 8, a)
 	return np.uint8(a)
 
 url = "http://52.90.77.195"
