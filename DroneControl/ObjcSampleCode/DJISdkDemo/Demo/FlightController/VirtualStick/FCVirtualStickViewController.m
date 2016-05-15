@@ -49,7 +49,7 @@ NSData *latest;
 {
     
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
-    NSString *URLString = @"http://nasa.devinmui.xyz/latest";
+    NSString *URLString = @"http://52.90.77.195/value";
     [manager GET:URLString parameters:nil progress:nil success:^(NSURLSessionTask *task, id responseObject) {
         NSLog(@"JSON: %@", responseObject);
 
@@ -58,14 +58,14 @@ NSData *latest;
         NSLog(@"Error: %@", error);
         
     }];
-    NSTimer *fiveSecondTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(performBackgroundTask) userInfo:nil repeats:YES];
+    NSTimer *fiveSecondTimer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(performBackgroundTask) userInfo:nil repeats:YES];
 }
 
 - (void)performBackgroundTask
 {
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSString *URLString = @"http://nasa.devinmui.xyz/latest";
+        NSString *URLString = @"http://52.90.77.195/value";
         //NSDictionary *parameters = @{@"foo": @"bar", @"baz": @[@1, @2, @3]};
         
         //[[AFHTTPRequestSerializer serializer] requestWithMethod:@"GET" URLString:URLString parameters:nil error:nil];
@@ -73,9 +73,17 @@ NSData *latest;
         AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
         [manager GET:URLString parameters:nil progress:nil success:^(NSURLSessionTask *task, id responseObject) {
             NSLog(@"JSON: %@", responseObject);
-            if(responseObject != latest){
-                
-                //fly drone
+            if(responseObject != nil){
+                if(responseObject[0] == 1) {
+                    [self takeOff];
+                    if([responseObject[1]  isEqual: @"right"]) {
+                        yaw = 0.75;
+                    } else if ([responseObject[1]  isEqual: @"left"]) {
+                        yaw = -0.75;
+                    } else {
+                        yaw = 0;
+                    }
+                }
             }
         } failure:^(NSURLSessionTask *operation, NSError *error) {
             NSLog(@"Error: %@", error);
@@ -106,24 +114,29 @@ NSData *latest;
         fc.delegate = self;
         fc.yawControlMode = DJIVirtualStickYawControlModeAngularVelocity;
         fc.rollPitchControlMode = DJIVirtualStickRollPitchControlModeVelocity;
+        
+        [fc enableVirtualStickControlModeWithCompletion:^(NSError *error) {
+            if (error) {
+                ShowResult(@"Enter Virtual Stick Mode:%@", error.description);
+            }
+            else
+            {
+                ShowResult(@"Enter Virtual Stick Mode:Succeeded");
+            }
+        }];
     }
-    /*for ( ; ; )
-    {
-        [self setXVelocity:1 andYVelocity:1];
-        [self setThrottle:1 andYaw:1];
-    }*/
     [self startTimedTask];
 }
 
 -(IBAction) onExitVirtualStickControlButtonClicked:(id)sender
 {
-    throttle = -1.00;
+    yaw = 0.80;
 }
     
 -(IBAction) onEnterVirtualStickControlButtonClicked:(id)sender
 {
-    [self setXVelocity:1 andYVelocity:1];
-    [self setThrottle:1 andYaw:1];
+    [self setXVelocity:1.00 andYVelocity:1.00];
+    [self setThrottle:-1.00 andYaw:1.00];
 }
 
 -(IBAction) onTakeoffButtonClicked:(id)sender
@@ -134,7 +147,6 @@ NSData *latest;
             if (error) {
                 ShowResult(@"Takeoff:%@", error.description);
             } else {
-                ShowResult(@"Success. ");
             }
         }];
     }
@@ -163,6 +175,26 @@ NSData *latest;
         ShowResult(@"Component not exist.");
     }
 }
+-(void)takeOff {
+    
+    DJIFlightController* fc = [DemoComponentHelper fetchFlightController];
+    if (fc) {
+        [fc takeoffWithCompletion:^(NSError * _Nullable error) {
+            if (error) {
+                ShowResult(@"Takeoff Error:%@", error.localizedDescription);
+            }
+            else
+            {
+            }
+        }];
+    }
+    else
+    {
+        ShowResult(@"Component Not Exist");
+    }
+    
+}
+
 
 /*- (void)onStickChanged:(NSNotification*)notification
 {
