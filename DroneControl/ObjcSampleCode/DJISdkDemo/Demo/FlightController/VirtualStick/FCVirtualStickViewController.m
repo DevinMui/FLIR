@@ -15,6 +15,7 @@
 #import "FCVirtualStickViewController.h"
 #import "FCVirtualStickView.h"
 #import "DemoUtility.h"
+#import "AFNetworking.h"
 
 @interface FCVirtualStickViewController ()
 
@@ -37,8 +38,56 @@
     float mYVelocity;
     float mYaw;
     float mThrottle;
-    float dirx;
-    float diry;
+    float throttle;
+    float yaw;
+    float xdir;
+    float ydir;
+    
+}
+
+NSData *latest;
+
+- (void)startTimedTask
+{
+    
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    NSString *URLString = @"http://nasa.devinmui.xyz/latest";
+    [manager GET:URLString parameters:nil progress:nil success:^(NSURLSessionTask *task, id responseObject) {
+        NSLog(@"JSON: %@", responseObject);
+
+        
+    } failure:^(NSURLSessionTask *operation, NSError *error) {
+        NSLog(@"Error: %@", error);
+        
+    }];
+    NSTimer *fiveSecondTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(performBackgroundTask) userInfo:nil repeats:YES];
+}
+
+- (void)performBackgroundTask
+{
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSString *URLString = @"http://nasa.devinmui.xyz/latest";
+        //NSDictionary *parameters = @{@"foo": @"bar", @"baz": @[@1, @2, @3]};
+        
+        //[[AFHTTPRequestSerializer serializer] requestWithMethod:@"GET" URLString:URLString parameters:nil error:nil];
+        
+        AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+        [manager GET:URLString parameters:nil progress:nil success:^(NSURLSessionTask *task, id responseObject) {
+            NSLog(@"JSON: %@", responseObject);
+            if(responseObject != latest){
+                
+                //fly drone
+            }
+        } failure:^(NSURLSessionTask *operation, NSError *error) {
+            NSLog(@"Error: %@", error);
+        }];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            //Update UI
+        });
+    });
+    [self setMovement];
 }
 
 
@@ -47,42 +96,36 @@
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    [notificationCenter addObserver: self
+                           selector: @selector (onStickChanged:)
+                               name: @"StickChanged"
+                             object: nil];
+    
+    
     DJIFlightController* fc = [DemoComponentHelper fetchFlightController];
     if (fc) {
         fc.delegate = self;
-        fc.rollPitchControlMode = DJIVirtualStickFlightCoordinateSystemGround;
+        fc.yawControlMode = DJIVirtualStickYawControlModeAngularVelocity;
+        fc.rollPitchControlMode = DJIVirtualStickRollPitchControlModeVelocity;
     }
-        
-    [self setXVelocity:1 andYVelocity:1];
+    /*for ( ; ; )
+    {
+        [self setXVelocity:1 andYVelocity:1];
+        [self setThrottle:1 andYaw:1];
+    }*/
+    [self startTimedTask];
 }
 
 -(IBAction) onExitVirtualStickControlButtonClicked:(id)sender
 {
-    DJIFlightController* fc = [DemoComponentHelper fetchFlightController];
-    if (fc) {
-        [fc disableVirtualStickControlModeWithCompletion:^(NSError * _Nullable error) {
-            if (error){
-                ShowResult(@"Exit Virtual Stick Mode: %@", error.debugDescription);
-            } else{
-                ShowResult(@"Success. ");
-            }
-        }];
-    }
-    else
-    {
-        ShowResult(@"Component not exist.");
-    }
+    throttle = -1.00;
 }
     
 -(IBAction) onEnterVirtualStickControlButtonClicked:(id)sender
 {
-    DJIFlightController* fc = [DemoComponentHelper fetchFlightController];
-    if (fc) {
-        fc.yawControlMode = DJIVirtualStickYawControlModeAngularVelocity;
-        fc.rollPitchControlMode = DJIVirtualStickRollPitchControlModeVelocity;
-    }
-    
     [self setXVelocity:1 andYVelocity:1];
+    [self setThrottle:1 andYaw:1];
 }
 
 -(IBAction) onTakeoffButtonClicked:(id)sender
@@ -123,8 +166,6 @@
     }
 }
 
-
-
 /*- (void)onStickChanged:(NSNotification*)notification
 {
     NSDictionary *dict = [notification userInfo];
@@ -148,6 +189,11 @@
     }
 }*/
 
+-(void) setMovement {
+    [self setThrottle:throttle andYaw:yaw];
+    [self setXVelocity:xdir andYVelocity:ydir];
+}
+
 -(void) setThrottle:(float)y andYaw:(float)x
 {
     mThrottle = y * -2;
@@ -157,11 +203,8 @@
 }
 
 -(void) setXVelocity:(float)x andYVelocity:(float)y {
-    
-    dirx = 1;
-    diry = 1;
-    mXVelocity = dirx;
-    mYVelocity = diry;
+    mXVelocity = x * DJIVirtualStickRollPitchControlMaxVelocity;
+    mYVelocity = y * DJIVirtualStickRollPitchControlMaxVelocity;
     [self updateJoystick];
 }
 
@@ -175,7 +218,9 @@
     ctrlData.yaw = mYaw;
     ctrlData.verticalThrottle = mThrottle;
     DJIFlightController* fc = [DemoComponentHelper fetchFlightController];
+    if (fc && fc.isVirtualStickControlModeAvailable) {
         [fc sendVirtualStickFlightControlData:ctrlData withCompletion:nil];
+    }
 }
 
 #pragma mark - Delegate

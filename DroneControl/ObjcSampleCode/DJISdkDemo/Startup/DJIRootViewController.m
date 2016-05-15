@@ -33,9 +33,9 @@ NSData *latest;
 NSString *longitude;
 NSString *latitude;
 
-
 - (void)viewDidLoad {
     [super viewDidLoad];
+
     
     //Register App with App Key
     NSString* appKey = @"d8d5e0bbff124f85dce2be5c"; //TODO: Please enter your App Key here
