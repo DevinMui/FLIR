@@ -128,53 +128,6 @@ NSData *latest;
     [self startTimedTask];
 }
 
--(IBAction) onExitVirtualStickControlButtonClicked:(id)sender
-{
-    yaw = 0.80;
-}
-    
--(IBAction) onEnterVirtualStickControlButtonClicked:(id)sender
-{
-    [self setXVelocity:1.00 andYVelocity:1.00];
-    [self setThrottle:-1.00 andYaw:1.00];
-}
-
--(IBAction) onTakeoffButtonClicked:(id)sender
-{
-    DJIFlightController* fc = [DemoComponentHelper fetchFlightController];
-    if (fc) {
-        [fc takeoffWithCompletion:^(NSError *error) {
-            if (error) {
-                ShowResult(@"Takeoff:%@", error.description);
-            } else {
-            }
-        }];
-    }
-    else
-    {
-        ShowResult(@"Component not exist.");
-    }
-}
-
--(IBAction) onCoordinateSysButtonClicked:(id)sender
-{
-    DJIFlightController* fc = [DemoComponentHelper fetchFlightController];
-    if (fc) {
-        if (fc.rollPitchCoordinateSystem == DJIVirtualStickFlightCoordinateSystemGround) {
-            fc.rollPitchCoordinateSystem = DJIVirtualStickFlightCoordinateSystemBody;
-            [_coordinateSys setTitle:NSLocalizedString(@"CoordinateSys:Body", @"") forState:UIControlStateNormal ];
-        }
-        else
-        {
-            fc.rollPitchCoordinateSystem = DJIVirtualStickFlightCoordinateSystemGround;
-            [_coordinateSys setTitle:NSLocalizedString(@"CoordinateSys:Ground", @"") forState:UIControlStateNormal];
-        }
-    }
-    else
-    {
-        ShowResult(@"Component not exist.");
-    }
-}
 -(void)takeOff {
     
     DJIFlightController* fc = [DemoComponentHelper fetchFlightController];
