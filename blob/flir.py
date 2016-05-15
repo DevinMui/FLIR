@@ -5,8 +5,9 @@ from skimage.io import imread
 import requests
 from pylepton import Lepton
 import numpy as np
-
-def capture(flip_v = False, device = "/dev/spidev0.0"):
+import time
+import cv2
+def capture(flip_v = False, device = "/dev/spidev0.1"):
 	with Lepton(device) as l:
 		a,_ = l.capture()
 	if flip_v:
@@ -17,9 +18,9 @@ def capture(flip_v = False, device = "/dev/spidev0.0"):
 
 url = "http://52.90.77.195"
 # get video from flir or infinite loop
-time.sleep(0.2) # give the overlay buffers a chance to initialize
 while True:
-	image = imread(capture) # gonna be frame
+	cv2.imwrite("wat.jpg", capture())
+	image = imread("wat.jpg") # gonna be frame
 	image_gray = rgb2gray(image) # convert frame
 
 	blobs_doh = blob_doh(image_gray, min_sigma=20, max_sigma=35, threshold=.01) # detect frame
