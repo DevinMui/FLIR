@@ -6,7 +6,7 @@ import requests
 from pylepton import Lepton
 import numpy as np
 import time
-
+import cv2
 def capture(flip_v = False, device = "/dev/spidev0.1"):
 	with Lepton(device) as l:
 		a,_ = l.capture()
