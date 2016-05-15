@@ -19,8 +19,6 @@
 
 @interface FCVirtualStickViewController ()
 
-@property(nonatomic, weak) IBOutlet FCVirtualStickView* joystickLeft;
-@property(nonatomic, weak) IBOutlet FCVirtualStickView* joystickRight;
 @property(nonatomic, weak) IBOutlet UIButton* coordinateSys;
 
 @property (weak, nonatomic) IBOutlet UIButton *enableVirtualStickButton;
