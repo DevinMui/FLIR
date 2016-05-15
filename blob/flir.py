@@ -7,6 +7,14 @@ from pylepton import Lepton
 import numpy as np
 import time
 import cv2
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(18, GPIO.OUT)
+pwm = GPIO.PWM(18, 100)
+pwm.start(5)
+
+
 def capture(flip_v = False, device = "/dev/spidev0.1"):
 	with Lepton(device) as l:
 		a,_ = l.capture()
@@ -28,6 +36,8 @@ while True:
 	if len(blobs_doh):
 		print "request to server here to drone"
 		r = requests.get(url + "/intrude")
+                pwm.ChangeDutyCycle(15)
+		time.sleep(1)
 		# potentially move to blob
 		y = blobs_doh[0][0]
 		x = blobs_doh[0][1]
@@ -35,4 +45,6 @@ while True:
 
 	else:
 		r = requests.get(url + "/no_intrude")
+		pwm.ChangeDutyCycle(0)
+		time.sleep(1)
 		# set drone to standalone mode/passive tracking
