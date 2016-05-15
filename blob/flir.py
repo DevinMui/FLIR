@@ -14,6 +14,7 @@ GPIO.setup(18, GPIO.OUT)
 pwm = GPIO.PWM(18, 100)
 pwm.start(5)
 
+start = 5
 
 def capture(flip_v = False, device = "/dev/spidev0.1"):
 	with Lepton(device) as l:
@@ -36,7 +37,8 @@ while True:
 	if len(blobs_doh):
 		print "request to server here to drone"
 		r = requests.get(url + "/intrude")
-                pwm.ChangeDutyCycle(15)
+		pwm.ChangeDutyCycle(start + 15)
+		start = start + 15
 		time.sleep(1)
 		# potentially move to blob
 		y = blobs_doh[0][0]
@@ -45,6 +47,6 @@ while True:
 
 	else:
 		r = requests.get(url + "/no_intrude")
-		pwm.ChangeDutyCycle(0)
+		pwm.ChangeDutyCycle(5)
 		time.sleep(1)
 		# set drone to standalone mode/passive tracking
