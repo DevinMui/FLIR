@@ -8,6 +8,9 @@ import numpy as np
 import time
 import cv2
 import RPi.GPIO as GPIO
+import string
+import random
+import picamera
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(18, GPIO.OUT)
@@ -25,6 +28,8 @@ def capture(flip_v = False, device = "/dev/spidev0.1"):
 	np.right_shift(a, 8, a)
 	return np.uint8(a)
 
+camera = picamera.PiCamera()
+
 url = "http://52.90.77.195"
 # get video from flir or infinite loop
 while True:
@@ -35,10 +40,16 @@ while True:
 	blobs_doh = blob_doh(image_gray, min_sigma=20, max_sigma=35, threshold=.01) # detect frame
 
 	if len(blobs_doh):
+		file = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)) + '.jpg'
+		camera.capture(file)
 		print "request to server here to drone"
 		r = requests.get(url + "/intrude")
-		pwm.ChangeDutyCycle(start + 15)
-		start = start + 15
+		if(start < 70):
+			start = start + 15
+			pwm.ChangeDutyCycle(start)
+		else:
+			start = 5
+			pwm.ChangeDutyCycle(start)
 		time.sleep(0.5)
 		# potentially move to blob
 		y = blobs_doh[0][0]
